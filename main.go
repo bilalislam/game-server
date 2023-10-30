@@ -37,6 +37,7 @@ func generateUserID() string {
 	return string(b)
 }
 
+// todo : handle concurrent read and write and to avoid race condition and dead lock
 func handleWebSocketConnection(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
