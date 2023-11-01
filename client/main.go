@@ -1,8 +1,13 @@
 package main
 
 import (
+	"bufio"
+	"encoding/json"
 	"fmt"
+	"game-server/ws"
 	"net/http"
+	"os"
+	"strings"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -19,30 +24,38 @@ func main() {
 	}
 	defer conn.Close()
 
-	// Define your "join" command data
-	command := struct {
-		Command string `json:"cmd"`
-		UserID  string `json:"id"`
-	}{
-		Command: "join",
-		UserID:  "kquKIltb",
-	}
+	reader := bufio.NewReader(os.Stdin)
 
-	// Send the "join" command to the server
-	if err := conn.WriteJSON(command); err != nil {
-		fmt.Println("Error sending 'join' command:", err)
-		return
-	}
+	for {
+		fmt.Print("Enter a command (or 'exit' to quit): ")
+		input, _ := reader.ReadString('\n')
+		input = strings.TrimSpace(input)
 
-	// Read the server's response, if any
-	var response interface{}
-	if err := conn.ReadJSON(&response); err != nil {
-		fmt.Println("Error reading server response:", err)
-		return
-	}
+		if input == "exit" {
+			fmt.Println("Exiting the program.")
+			break
+		}
 
-	fmt.Printf("Server response: %+v\n", response)
-	select {}
+		var cmd ws.Command
+		if err := json.Unmarshal([]byte(input), &cmd); err != nil {
+			fmt.Println("Invalid JSON input. Try again.")
+			continue
+		}
+
+		if err := conn.WriteJSON(cmd); err != nil {
+			fmt.Printf("Error %s sending command %s:", err, cmd.Cmd)
+			return
+		}
+
+		// Read the server's response, if any
+		var response interface{}
+		if err := conn.ReadJSON(&response); err != nil {
+			fmt.Println("Error reading server response:", err)
+			return
+		}
+
+		fmt.Printf("Server response: %+v\n", response)
+	}
 }
 
 func init() {
