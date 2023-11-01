@@ -32,3 +32,4 @@ $ /join {“cmd”:”join”, “id”:uuid}
 * concurrency 
 * waiting room
 * matchmaking algorithm
+* unit test
