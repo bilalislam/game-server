@@ -29,6 +29,16 @@ var upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
+var waitingRequests = make(map[string]*websocket.Conn)
+var rooms = make(map[string][]UserRoom)
+
+type UserRoom struct {
+	UserId     string `json:"userId"`
+	RoomData   int    `json:"roomData"`
+	IsAnswered bool
+	Conn       *websocket.Conn
+}
+
 func HandleWebSocketConnection(w http.ResponseWriter, r *http.Request) {
 
 	conn, err := upgrader.Upgrade(w, r, nil)
@@ -49,14 +59,13 @@ func HandleWebSocketConnection(w http.ResponseWriter, r *http.Request) {
 		switch cmd.Cmd {
 		case "join":
 			handleJoinRequest(&cmd, conn)
+		case "guess":
+			//
 		default:
 			fmt.Printf("Unknown command: %s\n", cmd)
 		}
 	}
 }
-
-var waitingRequests = make(map[string]*websocket.Conn)
-var rooms = make(map[string][]*websocket.Conn)
 
 var mu sync.RWMutex
 
@@ -82,6 +91,15 @@ func handleJoinRequest(cmd *Command, conn *websocket.Conn) {
 	}
 }
 
+/*
+TODO 3: scoreboard , gameOver
+* 3 olmadan oda acılmayacak
+* kalan kullancılar eşleşmeyecek
+* user bazlı timeoutlar'da bir cevap olacagından her tahmin sonrası odadaki her user'ın cevap verildiği kontrol edilecek
+* her user cevap verdiyse zaten room içinde aynı user timeout'u gecerli olacagından ilgili gameOver tahminlerin bittiği oda için server
+tarafından calıstırılır.
+her guess'de tüm cevapları check et ve scoreboard hesapla, bitti ise gameOver(rooms) ve tüm client'lar scoreboard goster
+*/
 func MatchUsers() {
 	for {
 		time.Sleep(5 * time.Second)
@@ -94,19 +112,29 @@ func MatchUsers() {
 		mu.Unlock()
 
 		roomID := generateRoomID()
+		roomData := 0
 
 		mu.RLock()
+
+		//TODO 1 3erlik odalar
+		if len(waitingRequests) >= 3 {
+
+		}
+
 		for userID, conn := range waitingRequests {
+
 			if len(rooms[roomID]) >= 2 {
 				mu.Unlock()
 				break
 			}
 
-			rooms[roomID] = append(rooms[roomID], conn)
-			delete(waitingRequests, userID)
-			fmt.Printf("roomId %s", roomID)
-			fmt.Print("deleted...")
+			rooms[roomID] = append(rooms[roomID], UserRoom{
+				UserId:   userID,
+				RoomData: roomData,
+				Conn:     conn,
+			})
 
+			delete(waitingRequests, userID)
 			reply := ReplyEvent{
 				Event: "joinedRoom",
 				Room:  roomID,
