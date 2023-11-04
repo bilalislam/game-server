@@ -7,6 +7,7 @@ import (
 	"game-server/ws"
 	"net/http"
 	"os"
+	"os/signal"
 	"strings"
 	"time"
 
@@ -22,39 +23,67 @@ func main() {
 		fmt.Println("WebSocket connection error:", err)
 		return
 	}
+
 	defer conn.Close()
 
-	reader := bufio.NewReader(os.Stdin)
+	messages := make(chan interface{})
+	go listenForMessages(conn, messages)
+
+	commands := make(chan ws.Command)
+	go sendCommands(commands)
+
+	interrupt := make(chan os.Signal, 1)
+	signal.Notify(interrupt, os.Interrupt)
 
 	for {
+		select {
+		case message := <-messages:
+			fmt.Printf("Received message: %s\n", message)
+			go sendCommands(commands)
+		case command := <-commands:
+			fmt.Printf("Sending command: %s\n", command)
+			if err := conn.WriteJSON(command); err != nil {
+				fmt.Printf("Error %s sending command %s:", err, command.Cmd)
+				return
+			}
+		case <-interrupt:
+			fmt.Println("Interrupt signal received. Exiting...")
+			return
+		}
+	}
+}
+
+func listenForMessages(conn *websocket.Conn, messages chan<- interface{}) {
+	for {
+
+		var response interface{}
+		if err := conn.ReadJSON(&response); err != nil {
+			fmt.Println("Error reading server response:", err)
+			return
+		}
+		messages <- response
+	}
+}
+
+func sendCommands(commands chan<- ws.Command) {
+	for {
+		reader := bufio.NewReader(os.Stdin)
 		fmt.Print("Enter a command (or 'exit' to quit): ")
 		input, _ := reader.ReadString('\n')
 		input = strings.TrimSpace(input)
 
 		if input == "exit" {
 			fmt.Println("Exiting the program.")
-			break
+			return
 		}
 
 		var cmd ws.Command
 		if err := json.Unmarshal([]byte(input), &cmd); err != nil {
 			fmt.Println("Invalid JSON input. Try again.")
-			continue
-		}
-
-		if err := conn.WriteJSON(cmd); err != nil {
-			fmt.Printf("Error %s sending command %s:", err, cmd.Cmd)
 			return
 		}
 
-		// Read the server's response, if any
-		var response interface{}
-		if err := conn.ReadJSON(&response); err != nil {
-			fmt.Println("Error reading server response:", err)
-			return
-		}
-
-		fmt.Printf("Server response: %+v\n", response)
+		commands <- cmd
 	}
 }
 

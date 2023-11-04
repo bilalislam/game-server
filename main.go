@@ -37,5 +37,7 @@ func main() {
 
 	fmt.Println("WebSocket server started on :8081")
 
+	go wsHandler.MatchUsers()
+
 	select {}
 }
