@@ -26,7 +26,7 @@ func main() {
 
 	defer conn.Close()
 
-	messages := make(chan ws.ReplyEvent)
+	messages := make(chan interface{})
 	go listenForMessages(conn, messages)
 
 	commands := make(chan ws.Command)
@@ -38,11 +38,26 @@ func main() {
 	for {
 		select {
 		case message := <-messages:
-			if message.Event != "" {
-				if jsonResult, err := json.Marshal(message); err == nil {
-					fmt.Println(string(jsonResult))
-				}
-				go sendCommands(message.Event, commands)
+			var cmd ws.ReplyCommand
+			var event ws.ReplyEvent
+			jsonResult, _ := json.Marshal(message)
+
+			if err := json.Unmarshal(jsonResult, &cmd); err != nil {
+				fmt.Println("Invalid JSON input. Try again.")
+				return
+			}
+
+			if err = json.Unmarshal(jsonResult, &event); err != nil {
+				fmt.Println("Invalid JSON input. Try again.")
+				return
+			}
+
+			fmt.Println(string(jsonResult))
+
+			if event.Event != "" {
+				go sendCommands(event.Event, commands)
+			} else if cmd.Reply != "" {
+				go sendCommands(cmd.Reply, commands)
 			}
 		case command := <-commands:
 			fmt.Printf("Sending command: %s\n", command)
@@ -60,10 +75,10 @@ func main() {
 // TODO 2 : client bazlı guess komutu için 20 sn timeout
 // eger timeout varsa reply olarak don ve timeout oldugunu set et,kupa verme ,sıra da -1 olmalı
 // aynı zamanda guess verememesi için cli'ı freeze et , sadece dinlesin
-func listenForMessages(conn *websocket.Conn, messages chan<- ws.ReplyEvent) {
+func listenForMessages(conn *websocket.Conn, messages chan<- interface{}) {
 	for {
 
-		var response ws.ReplyEvent
+		var response interface{}
 		if err := conn.ReadJSON(&response); err != nil {
 			fmt.Println("Error reading server response:", err)
 			return
@@ -76,9 +91,13 @@ func sendCommands(commandType string, commands chan<- ws.Command) {
 	for {
 		var reader = bufio.NewReader(os.Stdin)
 		if commandType == "default" {
-			fmt.Print("Enter a join command (or 'exit' to quit): ")
+			fmt.Println("Enter a join command (or 'exit' to quit): ")
+		} else if commandType == "waiting" {
+			fmt.Println("please wait ...")
 		} else if commandType == "joinedRoom" {
-			fmt.Print("Enter a guess command (or 'exit' to quit): ")
+			fmt.Println("Enter a guess command (or 'exit' to quit): ")
+		} else if commandType == "notRegistered" {
+			fmt.Println("Enter a join command (or 'exit' to quit): ")
 		}
 
 		input, _ := reader.ReadString('\n')
