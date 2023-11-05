@@ -208,7 +208,7 @@ her guess'de tüm cevapları check et ve scoreboard hesapla, bitti ise gameOver(
 */
 func MatchUsers() {
 	for {
-		time.Sleep(10 * time.Second)
+		time.Sleep(30 * time.Second)
 
 		roomID := generateRoomID()
 		roomData := rand.Intn(10-1) + 1
