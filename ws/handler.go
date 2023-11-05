@@ -117,6 +117,7 @@ func handleGuessRequest(cmd *Command) {
 func calculateUserRanking(userRooms []*UserRoom) ScoreBoard {
 	sortUserGuesses(userRooms)
 	var scoreBoard ScoreBoard
+	var rankings []Ranking
 	for i, user := range userRooms {
 		cup := 0
 		if i == 0 {
@@ -125,7 +126,6 @@ func calculateUserRanking(userRooms []*UserRoom) ScoreBoard {
 			cup = 10
 		}
 
-		var rankings []Ranking
 		rankings = append(rankings, Ranking{
 			Rank:        i + 1,
 			Player:      user.UserId,
@@ -208,7 +208,7 @@ her guess'de tüm cevapları check et ve scoreboard hesapla, bitti ise gameOver(
 */
 func MatchUsers() {
 	for {
-		time.Sleep(5 * time.Second)
+		time.Sleep(10 * time.Second)
 
 		roomID := generateRoomID()
 		roomData := rand.Intn(10-1) + 1
