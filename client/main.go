@@ -35,6 +35,8 @@ func main() {
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
 
+	var timeout time.Timer
+	var isGuessCommandSent bool
 	for {
 		select {
 		case message := <-messages:
@@ -55,6 +57,11 @@ func main() {
 			fmt.Println(string(jsonResult))
 
 			if event.Event != "" {
+
+				if event.Event == "joinedRoom" {
+					timeout = *time.NewTimer(10 * time.Second)
+				}
+
 				go sendCommands(event.Event, commands)
 			} else if cmd.Reply != "" {
 				go sendCommands(cmd.Reply, commands)
@@ -64,6 +71,15 @@ func main() {
 			if err := conn.WriteJSON(command); err != nil {
 				fmt.Printf("Error %s sending command %s:", err, command.Cmd)
 				return
+			}
+
+			if command.Cmd == "guess" {
+				isGuessCommandSent = true
+				fmt.Printf("please wait game result ...")
+			}
+		case <-timeout.C:
+			if !isGuessCommandSent {
+				fmt.Println("Timeout occurred. No command received in 20 seconds.")
 			}
 		case <-interrupt:
 			fmt.Println("Interrupt signal received. Exiting...")
@@ -95,7 +111,7 @@ func sendCommands(commandType string, commands chan<- ws.Command) {
 		} else if commandType == "waiting" {
 			fmt.Println("please wait ...")
 		} else if commandType == "joinedRoom" {
-			fmt.Println("Enter a guess command (or 'exit' to quit): ")
+			fmt.Println("Enter a guess command in 20 seconds (or 'exit' to quit): ")
 		} else if commandType == "notRegistered" {
 			fmt.Println("Enter a join command (or 'exit' to quit): ")
 		}

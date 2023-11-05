@@ -12,6 +12,8 @@ import (
 type Command struct {
 	Cmd    string `json:"cmd"`
 	UserID string `json:"id"`
+	RoomId string `json:"room"`
+	Data   string `json:"data"`
 }
 
 type ReplyCommand struct {
@@ -29,6 +31,7 @@ var upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
+var mu sync.RWMutex
 var waitingRequests = make(map[string]*websocket.Conn)
 var rooms = make(map[string][]UserRoom)
 
@@ -60,14 +63,16 @@ func HandleWebSocketConnection(w http.ResponseWriter, r *http.Request) {
 		case "join":
 			handleJoinRequest(&cmd, conn)
 		case "guess":
-			//
+			handleGuessRequest(&cmd, conn)
 		default:
 			fmt.Printf("Unknown command: %s\n", cmd)
 		}
 	}
 }
 
-var mu sync.RWMutex
+func handleGuessRequest(cmd *Command, conn *websocket.Conn) {
+
+}
 
 func handleJoinRequest(cmd *Command, conn *websocket.Conn) {
 	mu.Lock()
@@ -103,13 +108,6 @@ her guess'de tüm cevapları check et ve scoreboard hesapla, bitti ise gameOver(
 func MatchUsers() {
 	for {
 		time.Sleep(5 * time.Second)
-		fmt.Print("run...")
-
-		mu.Lock()
-		for userID := range waitingRequests {
-			fmt.Printf("user %s", userID)
-		}
-		mu.Unlock()
 
 		roomID := generateRoomID()
 		roomData := 0

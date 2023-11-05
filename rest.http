@@ -6,3 +6,5 @@ content-type: application/json
 {"cmd":"join", "id":"XVlBzgba"}
 {"cmd":"join", "id":"iCMRAjWw"}
 {"cmd":"join", "id":"hTHctcuA"}
+
+{"cmd": "guess", "id":"XVlBzgba", "room":"room1699202290968517000", "data":"5"}
