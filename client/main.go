@@ -59,7 +59,7 @@ func main() {
 			if event.Event != "" {
 
 				if event.Event == "joinedRoom" {
-					timeout = *time.NewTimer(10 * time.Second)
+					timeout = *time.NewTimer(20 * time.Second)
 				}
 
 				go sendCommands(event.Event, commands)
@@ -75,7 +75,7 @@ func main() {
 
 			if command.Cmd == "guess" {
 				isGuessCommandSent = true
-				fmt.Printf("please wait game result ...")
+				fmt.Printf("please wait game result ... \n")
 			}
 		case <-timeout.C:
 			if !isGuessCommandSent {
