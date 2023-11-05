@@ -37,8 +37,9 @@ $ /guess {"cmd": "guess", "id":"XVlBzgba", "room":"room1699210612327731000", "da
 - [x] in memory usage
 - [x] concurrency 
 - [x] waiting room
-- [ ] matchmaking algorithm
+- [x] matchmaking algorithm
 - [ ] unit test
 - [ ] void to command after timeout
 - [ ] handle timeout , guess as zero and set rank is -1 to server
 - [ ] start new game when no ones give an answer 
+- [ ] start game until room count is 3 players 
