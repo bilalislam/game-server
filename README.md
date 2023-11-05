@@ -29,7 +29,7 @@ $ /guess {"cmd": "guess", "id":"XVlBzgba", "room":"room1699210612327731000", "da
 ```
 
 
-### todo
+### status
 
 - [ ] http stats
 - [x] ws /guess
