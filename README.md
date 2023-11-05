@@ -7,7 +7,7 @@ $  go run main.go
 
 ### post user from http
 ```shell
-$  curl -X POST -H "Content-Type: application/json" -d http://localhost:8081/register {"name":"nickname"}
+$  curl -X POST -H "Content-Type: application/json" -d http://localhost:8080/register {"name":"nickname"}
 ```
 
 ### run the clients
