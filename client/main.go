@@ -15,7 +15,7 @@ import (
 )
 
 func main() {
-	serverAddr := "ws://localhost:8080/ws"
+	serverAddr := "ws://localhost:8081/ws"
 
 	// Establish a WebSocket connection to the server
 	conn, _, err := websocket.DefaultDialer.Dial(serverAddr, nil)
