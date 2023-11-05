@@ -216,9 +216,9 @@ func MatchUsers() {
 		mu.RLock()
 
 		//TODO 1 3erlik odalar
-		if len(waitingRequests) >= 3 {
-
-		}
+		//if len(waitingRequests) >= 3 {
+		//
+		//}
 
 		for userID, conn := range waitingRequests {
 
