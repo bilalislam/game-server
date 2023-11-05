@@ -19,17 +19,23 @@ $ go run main.go
 ### join
 ```shell
 $ cd client
-$ /join {“cmd”:”join”, “id”:uuid}
+$ /join {"cmd":"join", "id":"XVlBzgba"}
+```
+
+### guess
+```shell
+$ cd client
+$ /guess {"cmd": "guess", "id":"XVlBzgba", "room":"room1699210612327731000", "data":4}
 ```
 
 
 ### todo
 
-* http stats
-* ws /guess
-* ws /gameOver
-* in memory usage
-* concurrency 
-* waiting room
-* matchmaking algorithm
-* unit test
+- [ ] http stats
+- [x] ws /guess
+- [x] ws /gameOver
+- [x] in memory usage
+- [x] concurrency 
+- [x] waiting room
+- [ ] matchmaking algorithm
+- [ ] unit test
